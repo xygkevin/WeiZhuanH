@@ -1,25 +1,47 @@
 import { LogUtil } from '../utils/log/LogUtil'
 import { StackBannerComponent } from '../components/StackBannerComponent'
 import { RouterUtil } from '../utils/router/RouterUtil'
+import { RcpUtil } from '../utils/network/RcpUtil'
+import { RcpError } from '../utils/network/RcpError'
 
 @Entry
 @ComponentV2
 struct Index {
-  aboutToAppear(): void {
-    setInterval(() => {
-      LogUtil.d('Index', '哈哈哈哈哈')
-      LogUtil.i('Index', '哈哈哈哈哈')
-      LogUtil.w('Index', '哈哈哈哈哈')
-      LogUtil.e('Index', '哈哈哈哈哈')
-      LogUtil.f('Index', '哈哈哈哈哈')
-    }, 1000)
-  }
-
   build() {
     Stack() {
       Navigation(RouterUtil.navPathStack) {
-        Column() {
-          StackBannerComponent({})
+        Column({ space: 30 }) {
+          Button('打印DEBUG')
+            .width(200)
+            .height(36)
+            .onClick(() => {
+              LogUtil.debug('Index', '哈哈哈哈')
+            })
+          Button('打印INFO')
+            .width(200)
+            .height(36)
+            .onClick(() => {
+              LogUtil.info('Index', '哈哈哈哈')
+            })
+          Button('打印ERROR')
+            .width(200)
+            .height(36)
+            .onClick(() => {
+              LogUtil.error('Index', '哈哈哈哈')
+            })
+          Button('打印WARN')
+            .width(200)
+            .height(36)
+            .onClick(() => {
+              LogUtil.warn('Index',
+                '哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈')
+            })
+          Button('打印FATAL')
+            .width(200)
+            .height(36)
+            .onClick(() => {
+              LogUtil.fatal('Index', '哈哈哈哈')
+            })
         }
         .justifyContent(FlexAlign.Center)
         .width('100%')

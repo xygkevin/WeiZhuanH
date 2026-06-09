@@ -17,6 +17,8 @@ import { emitter } from "@kit.BasicServicesKit"
 import { RcpEventId } from "./RcpEventId"
 import { RcpMethod } from "./RcpMethod"
 import { AppUtil } from "../app/AppUtil"
+import { LogUtil } from "../log/LogUtil"
+
 
 /**
  * Rcp请求工具
@@ -28,49 +30,50 @@ export class RcpUtil {
   private static instance: RcpUtil = new RcpUtil()
   private rcpSession?: rcp.Session
 
-  private constructor() {
-    try {
-      let configuration: rcp.SessionConfiguration = {
-        baseAddress: RcpConstants.BASE_URL_DEBUG,
-        requestConfiguration: {
-          tracing: {
-            verbose: true,
-            infoToCollect: {
-              redirectCount: true
-            },
-            collectTimeInfo: true
-          },
-          transfer: {
-            timeout: {
-              connectMs: 60000,
-              transferMs: 60000
-            }
-          }
-        },
-        interceptors: [
-          new RcpRequestInterceptor(),
-          new RcpResponseInterceptor(),
-          new RcpLogInterceptor()
-        ]
-      }
-      this.rcpSession = rcp.createSession(configuration)
-    } catch (err) {
-      const error = err as BusinessError
-      console.error(`RcpUtil 创建 rcp.Session 失败: ${error.message}`)
-    }
-  }
-
   /**
    * 外部获取单例静态方法
    */
   public static shared() {
-    return RcpUtil.instance
+    let instance = RcpUtil.instance
+    if (!instance.rcpSession) {
+      try {
+        let configuration: rcp.SessionConfiguration = {
+          baseAddress: RcpConstants.BASE_URL_DEBUG,
+          requestConfiguration: {
+            tracing: {
+              verbose: true,
+              infoToCollect: {
+                redirectCount: true
+              },
+              collectTimeInfo: true
+            },
+            transfer: {
+              timeout: {
+                connectMs: 60000,
+                transferMs: 60000
+              }
+            }
+          },
+          interceptors: [
+            // new RcpRequestInterceptor(),
+            // new RcpResponseInterceptor(),
+            new RcpLogInterceptor()
+          ]
+        }
+        instance.rcpSession = rcp.createSession(configuration)
+      } catch (err) {
+        const error = err as BusinessError
+        console.error(`RcpUtil 创建 rcp.Session 失败: ${error.message}`)
+      }
+    }
+    return instance
   }
 
   public static async get<T = void>(path: string, params?: RcpParams): Promise<RcpResponse<T>> {
     let options = new RcpOptions()
     options.method = RcpMethod.GET
     options.params = params
+    options.path = path
     return RcpUtil.fetchRequest<T>(options)
   }
 
@@ -78,6 +81,7 @@ export class RcpUtil {
     let options = new RcpOptions()
     options.method = RcpMethod.POST
     options.params = params
+    options.path = path
     return RcpUtil.fetchRequest<T>(options)
   }
 
@@ -85,6 +89,7 @@ export class RcpUtil {
     let options = new RcpOptions()
     options.method = RcpMethod.PUT
     options.params = params
+    options.path = path
     return RcpUtil.fetchRequest<T>(options)
   }
 
@@ -92,6 +97,7 @@ export class RcpUtil {
     let options = new RcpOptions()
     options.method = RcpMethod.DELETE
     options.params = params
+    options.path = path
     return RcpUtil.fetchRequest<T>(options)
   }
 
@@ -99,6 +105,7 @@ export class RcpUtil {
     let options = new RcpOptions()
     options.method = RcpMethod.PATCH
     options.params = params
+    options.path = path
     return RcpUtil.fetchRequest<T>(options)
   }
 
@@ -106,6 +113,7 @@ export class RcpUtil {
     let options = new RcpOptions()
     options.method = RcpMethod.HEAD
     options.params = params
+    options.path = path
     return RcpUtil.fetchRequest<T>(options)
   }
 
@@ -261,11 +269,13 @@ class RcpResponseInterceptor implements rcp.Interceptor {
 class RcpLogInterceptor implements rcp.Interceptor {
   async intercept(context: rcp.RequestContext, next: rcp.RequestHandler): Promise<rcp.Response> {
     // 1.记录请求信息
-    this.logRequest(context.request)
+    // this.logRequest(context.request)
+    LogUtil.logRcpRequest(context.request)
     // 2.调用下一个请求处理器
     const response = await next.handle(context);
     // 3.记录响应信息
-    this.logResponse(response)
+    // this.logResponse(response)
+    LogUtil.logRcpResponse(response)
     // 4.返回数据
     return response
   }

@@ -3,27 +3,12 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { ContextUtil } from '../utils/context/ContextUtil';
 import { WindowUtil } from '../utils/window/WindowUtil';
-import { LogLevel, LogUtil } from '../utils/log/LogUtil';
 
 const DOMAIN = 0x0000;
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     try {
-      // 1. 初始化（在应用启动时）
-      LogUtil.init({
-        domain: 0x0001,
-        tagPrefix: 'MyHarmonyApp',
-        enableDevLog: true,
-        minLevel: LogLevel.DEBUG,
-        showStack: true,
-        showDivider: false,
-        customHandler: (logInfo) => {
-          // 可选：自定义处理，例如上报到服务器
-          console.log('Custom handler:', logInfo);
-        },
-      });
-
       ContextUtil.init(this.context)
       this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
     } catch (err) {
