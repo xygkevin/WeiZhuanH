@@ -1,0 +1,12 @@
+{
+  "string": [
+    {
+      "name": "app_name",
+      "value": "WeiZhuanH"
+    },
+    {
+      "name": "permission_reason_for_internet",
+      "value": "获取应用运行数据"
+    }
+  ]
+}
