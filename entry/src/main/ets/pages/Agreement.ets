@@ -7,6 +7,12 @@
  * @Description : 描述
  */
 
+
+@Builder
+export function PageAgreementBuilder(name: string, param?: Object) {
+  Agreement()
+}
+
 @ComponentV2
 export struct Agreement {
   build() {

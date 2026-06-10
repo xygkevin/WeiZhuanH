@@ -3,6 +3,9 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { ContextUtil } from '../utils/context/ContextUtil';
 import { WindowUtil } from '../utils/window/WindowUtil';
+import { kAppStatus } from '../status/AppStatus';
+import { kUserStatus } from '../status/UserStatus';
+import { LogUtil } from '../utils/log/LogUtil';
 
 const DOMAIN = 0x0000;
 
@@ -10,6 +13,7 @@ export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     try {
       ContextUtil.init(this.context)
+      kAppStatus.isLaunch = true
       this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
     } catch (err) {
       hilog.error(DOMAIN, 'testTag', 'Failed to set colorMode. Cause: %{public}s', JSON.stringify(err));
@@ -52,10 +56,17 @@ export default class EntryAbility extends UIAbility {
   onForeground(): void {
     // Ability has brought to foreground
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onForeground');
+    if (!kAppStatus.isLaunch) {
+      kAppStatus.hotLaunch = true
+      LogUtil.info('AppStatus', '热启动')
+    } else {
+      LogUtil.info('AppStatus', '冷启动')
+    }
   }
 
   onBackground(): void {
     // Ability has back to background
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onBackground');
+    kAppStatus.isLaunch = false
   }
 }

@@ -25,10 +25,6 @@ export class LogUtil {
    * DOMAIN
    */
   private static domain: number = 0x0001
-  /**
-   * 分割线
-   */
-  private static showDivider: boolean = true
 
   /**
    * 设置日志开关
@@ -49,13 +45,6 @@ export class LogUtil {
    */
   static setLogLevel(value: LogLevel) {
     LogUtil.logLevel = value
-  }
-
-  /**
-   * 分割线显示设置
-   */
-  static setDivider(value: boolean) {
-    LogUtil.showDivider = value
   }
 
   /**
@@ -174,10 +163,6 @@ export class LogUtil {
       return
     }
     let output = content
-    if (LogUtil.showDivider) {
-      const divider = LogUtil.createDivider(80)
-      output = `${divider}\n${output}\n${divider}`
-    }
     try {
       switch (level) {
         case LogLevel.DEBUG: {
@@ -220,17 +205,5 @@ export class LogUtil {
       return false
     }
     return true
-  }
-
-  /**
-   * 创建分割线
-   */
-  private static createDivider(length: number): string {
-    const parts: string[] = [];
-    const dividerLength: number = length;
-    for (let i: number = 0; i < dividerLength; i++) {
-      parts.push('=');
-    }
-    return parts.join('');
   }
 }

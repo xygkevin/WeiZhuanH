@@ -1,0 +1,28 @@
+{
+  "routerMap": [
+    {
+      "name": "Profile",
+      "pageSourceFile": "src/main/ets/pages/Profile.ets",
+      "buildFunction": "PageProfileBuilder",
+      "data": {
+        "description": ""
+      }
+    },
+    {
+      "name": "Agreement",
+      "pageSourceFile": "src/main/ets/pages/Agreement.ets",
+      "buildFunction": "PageAgreementBuilder",
+      "data": {
+        "description": ""
+      }
+    },
+    {
+      "name": "Login",
+      "pageSourceFile": "src/main/ets/pages/Login.ets",
+      "buildFunction": "PageLoginBuilder",
+      "data": {
+        "description": ""
+      }
+    }
+  ]
+}
