@@ -1,5 +1,4 @@
 import { TokenModel } from '../model/TokenModel'
-import { StatusUtil } from '../status/StatusUtil'
 import { kUserStatus } from '../status/UserStatus'
 import { RouterUtil } from '../utils/router/RouterUtil'
 
@@ -11,12 +10,12 @@ struct Index {
     Stack() {
       Navigation(RouterUtil.navPathStack) {
         Column({ space: 30 }) {
-          Text(StatusUtil.isLoggedIn ? '已登录' : '未登录')
+          Text(kUserStatus.isLoggedIn() ? '已登录' : '未登录')
             .width(200)
             .height(36)
             .fontColor(Color.White)
             .textAlign(TextAlign.Center)
-            .backgroundColor(StatusUtil.isLoggedIn ? Color.Green : Color.Red)
+            .backgroundColor(kUserStatus.isLoggedIn() ? Color.Green : Color.Red)
           Button('PUSH 详情页')
             .width(200)
             .height(36)
