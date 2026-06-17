@@ -6,7 +6,7 @@
  * @Time : 2026/5/29 18:52
  * @Description : 描述
  */
-import { ComponentContent, LengthMetrics } from "@kit.ArkUI"
+import { ComponentContent, LengthMetrics, LevelMode, UIContext } from "@kit.ArkUI"
 import { WindowUtil } from "../window/WindowUtil"
 
 export class ToastOptions {
@@ -36,6 +36,7 @@ export class ToastOptions {
   iconWidth: number = 40
   iconHeight: number = 40
   titleSize: number = 14
+  nodeId?: string = undefined
   titleColor: ResourceColor = Color.White
   titleWeight: FontWeight = FontWeight.Regular
   titleAlign: TextAlign = TextAlign.Center
@@ -56,10 +57,25 @@ export class ToastOptions {
 }
 
 export class ToastUtil {
+  private static uiContext?: UIContext
   private static timer?: number
   private static options?: ToastOptions
   private static contentNode?: ComponentContent<ToastOptions>
 
+  /**
+   * 初始化
+   */
+  static init(uiContext: UIContext) {
+    ToastUtil.uiContext = uiContext
+  }
+
+  /**
+   * 纯文本Toast
+   * @param status
+   * @param duration
+   * @param onClose
+   * @returns
+   */
   static async showToast(status: string, duration?: number, onClose?: () => void): Promise<void> {
     let options = new ToastOptions()
     options.title = status
@@ -73,6 +89,13 @@ export class ToastUtil {
     return ToastUtil.show(options)
   }
 
+  /**
+   * 成功Toast
+   * @param status
+   * @param duration
+   * @param onClose
+   * @returns
+   */
   static async showSuccess(status?: string, duration?: number, onClose?: () => void): Promise<void> {
     let options = new ToastOptions()
     options.title = status
@@ -87,6 +110,13 @@ export class ToastUtil {
     return ToastUtil.show(options)
   }
 
+  /**
+   * 信息Toast
+   * @param status
+   * @param duration
+   * @param onClose
+   * @returns
+   */
   static async showInfo(status: string, duration?: number, onClose?: () => void): Promise<void> {
     let options = new ToastOptions()
     options.title = status
@@ -101,6 +131,13 @@ export class ToastUtil {
     return ToastUtil.show(options)
   }
 
+  /**
+   * 错误Toast
+   * @param status
+   * @param duration
+   * @param onClose
+   * @returns
+   */
   static async showError(status?: string, duration?: number, onClose?: () => void): Promise<void> {
     let options = new ToastOptions()
     options.title = status
@@ -115,6 +152,13 @@ export class ToastUtil {
     return ToastUtil.show(options)
   }
 
+  /**
+   * 警告Toast
+   * @param status
+   * @param duration
+   * @param onClose
+   * @returns
+   */
   static async showWarn(status?: string, duration?: number, onClose?: () => void): Promise<void> {
     let options = new ToastOptions()
     options.title = status
@@ -129,6 +173,13 @@ export class ToastUtil {
     return ToastUtil.show(options)
   }
 
+  /**
+   * Loading Toast
+   * @param status
+   * @param duration
+   * @param onClose
+   * @returns
+   */
   static async showLoading(status?: string, duration?: number, onClose?: () => void): Promise<void> {
     let options = new ToastOptions()
     options.title = status
@@ -141,6 +192,13 @@ export class ToastUtil {
     return ToastUtil.show(options)
   }
 
+  /**
+   * 进度Taost
+   * @param progress
+   * @param status
+   * @param onClose
+   * @returns
+   */
   static async showProgress(progress: number, status: string, onClose?: () => void): Promise<void> {
     let options: ToastOptions = new ToastOptions()
     options.title = status
@@ -154,6 +212,11 @@ export class ToastUtil {
     ToastUtil.show(options)
   }
 
+  /**
+   * 消除
+   * @param delay
+   * @returns
+   */
   static async dismiss(delay: number = 0): Promise<void> {
     if (delay > 0) {
       ToastUtil.startTimer(delay, async () => {
@@ -165,6 +228,11 @@ export class ToastUtil {
     }
   }
 
+  /**
+   * 核心方法展示
+   * @param options
+   * @returns
+   */
   private static async show(options: ToastOptions): Promise<void> {
     try {
       if (ToastUtil.options) {
@@ -174,8 +242,12 @@ export class ToastUtil {
           await ToastUtil.dismiss()
         }
       }
-      const mainWindow = await WindowUtil.mainWindow()
-      const uiContext = mainWindow.getUIContext()
+
+      const uiContext = ToastUtil.uiContext
+      if (!uiContext) {
+        console.error('清先初始化uiContext')
+        return
+      }
       const ptAction = uiContext.getPromptAction()
       if (ToastUtil.contentNode) {
         ToastUtil.options = options
@@ -196,7 +268,10 @@ export class ToastUtil {
             dy: options.offsetY
           },
           showInSubWindow: options.showInSubWindow,
+          levelMode: LevelMode.EMBEDDED,
+          levelUniqueId: options.nodeId ? uiContext.getFrameNodeById(options.nodeId)?.getUniqueId() : null,
           keyboardAvoidMode: KeyboardAvoidMode.DEFAULT,
+
           onWillDismiss: (reason) => {
             if (reason.reason === DismissReason.TOUCH_OUTSIDE) {
               reason.dismiss()
@@ -213,10 +288,17 @@ export class ToastUtil {
     }
   }
 
+  /**
+   * 核心方法关闭
+   * @returns
+   */
   private static async close(): Promise<void> {
     try {
-      const mainWindow = await WindowUtil.mainWindow()
-      const uiContext = mainWindow.getUIContext()
+      const uiContext = ToastUtil.uiContext
+      if (!uiContext) {
+        console.error('清先初始化uiContext')
+        return
+      }
       const ptAction = uiContext.getPromptAction()
       await ptAction.closeCustomDialog(ToastUtil.contentNode)
       ToastUtil.contentNode?.dispose()
@@ -230,11 +312,19 @@ export class ToastUtil {
     }
   }
 
+  /**
+   * 开启定时任务
+   * @param delay
+   * @param callback
+   */
   private static startTimer(delay: number, callback: () => void) {
     ToastUtil.removeTimer()
     ToastUtil.timer = setTimeout(callback, delay)
   }
 
+  /**
+   * 移除定时任务
+   */
   private static removeTimer() {
     if (ToastUtil.timer) {
       clearTimeout(ToastUtil.timer)
@@ -253,7 +343,7 @@ function buildToast(options: ToastOptions) {
 }
 
 @ComponentV2
-export struct ToastView {
+struct ToastView {
   @Param options: ToastOptions = new ToastOptions()
   @Local private angle: number = 0
   @Local showClose: boolean = false

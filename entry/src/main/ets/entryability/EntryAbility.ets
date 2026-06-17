@@ -6,6 +6,7 @@ import { WindowUtil } from '../utils/window/WindowUtil';
 import { kAppStatus } from '../status/AppStatus';
 import { kUserStatus } from '../status/UserStatus';
 import { LogUtil } from '../utils/log/LogUtil';
+import { ToastUtil } from '../utils/toast/ToastUtil';
 
 const DOMAIN = 0x0000;
 
@@ -39,6 +40,7 @@ export default class EntryAbility extends UIAbility {
 
       try {
         ContextUtil.setUIContext(windowStage.getMainWindowSync().getUIContext())
+        ToastUtil.init(ContextUtil.uiContext())
       } catch (err) {
         hilog.error(DOMAIN, 'testTag', 'Failed to load the Window or UIContext. Cause: %{public}s',
           JSON.stringify(err));

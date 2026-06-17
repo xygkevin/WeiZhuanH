@@ -29,16 +29,6 @@
         }
       },
       {
-        "name": "ohos.permission.GET_NETWORK_STATS",
-        "reason": "$string:permission_reason_for_get_network_stats",
-        "usedScene": {
-          "abilities": [
-            "EntryAbility"
-          ],
-          "when": "inuse"
-        }
-      },
-      {
         "name": "ohos.permission.SET_NETWORK_INFO",
         "reason": "$string:permission_reason_for_set_network_info",
         "usedScene": {
