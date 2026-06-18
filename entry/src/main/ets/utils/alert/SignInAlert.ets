@@ -6,19 +6,25 @@
  * @Time : 2026/6/17 18:40
  * @Description : 描述
  */
-import { ComponentContent, LevelMode } from "@kit.ArkUI"
+import { ComponentContent, curves, LengthMetrics, LevelMode } from "@kit.ArkUI"
+import { HomeCheckInItem, HomeCheckInModel } from "./HomeCheckInModel"
+
 
 /**
  * 签到数据
  */
-export class SignInModel {
+export interface SignInData {
+  model: HomeCheckInModel
+  onBannerClick: () => void
+  onToggleChange: (isOn: boolean) => void
+  onClosed: () => void
 }
 
 /**
  * 签到数据
  */
-export interface SignInParam {
-  data: SignInModel
+export interface SignInAlertParam {
+  data: SignInData
   nodeId?: string
 }
 
@@ -26,13 +32,13 @@ export interface SignInParam {
  * 签到弹窗
  */
 export class SignInAlert {
-  static contentNode?: ComponentContent<SignInParam>
+  static contentNode?: ComponentContent<SignInAlertParam>
   static uiContext?: UIContext
 
-  static async show(uiContext: UIContext, param: SignInParam): Promise<void> {
+  static async show(uiContext: UIContext, param: SignInAlertParam): Promise<void> {
     try {
       SignInAlert.uiContext = uiContext
-      SignInAlert.contentNode = new ComponentContent<SignInParam>(uiContext, wrapBuilder(buildSignInAlert), param)
+      SignInAlert.contentNode = new ComponentContent<SignInAlertParam>(uiContext, wrapBuilder(buildSignInAlert), param)
       const frameNode: FrameNode | null = param.nodeId ? uiContext.getFrameNodeById(param.nodeId) : null
       const uniqueId: number | null = frameNode ? frameNode.getUniqueId() : null
       const levelMode: LevelMode = uniqueId ? LevelMode.EMBEDDED : LevelMode.OVERLAY
@@ -40,10 +46,15 @@ export class SignInAlert {
         autoCancel: false,
         showInSubWindow: false,
         isModal: true,
-        maskColor: '#4D000000',
+        maskColor: '#66000000',
         levelMode: levelMode,
         levelUniqueId: uniqueId,
         alignment: DialogAlignment.Center,
+        maskTransition: TransitionEffect.opacity(0).animation({ duration: 200 }),
+        dialogTransition: TransitionEffect.translate({ y: -100 })
+          .combine(TransitionEffect.opacity(0))
+          .combine(TransitionEffect.scale({ x: 1, y: 1 }))
+          .animation({ duration: 500, delay: 0, curve: curves.springCurve(0, 1, 300, 28) }),
         onWillDismiss: (action: DismissDialogAction) => {
           return true
         }
@@ -65,23 +76,50 @@ export class SignInAlert {
 }
 
 @Builder
-function buildSignInAlert(model: SignInModel) {
+function buildSignInAlert(param: SignInAlertParam) {
   SignInComponent({
-    dataModel: model
+    data: param.data
   })
 }
 
 @ComponentV2
 export struct SignInComponent {
-  @Param @Require dataModel: SignInModel
+  @Param @Require data: SignInData
   @Local showBanner: boolean = false
-  @Local showClose: boolean = false
+  @Local showClose: boolean = true
+  @Local closeAngle: number = 0
+  @Local closeOpacity: number = 0
+  @Local tipText: string = ''
+  @Local tipAngle: number = 0
 
   aboutToAppear(): void {
+    this.tipText = this.data.model.preTips
     setTimeout(() => {
-      this.showBannerAnimation()
+      this.showTipsAnimation()
     }, 1000)
 
+  }
+
+  showTipsAnimation() {
+    this.getUIContext().animateTo({
+      duration: 200,
+      delay: 0,
+      onFinish: () => {
+        this.tipAngle = -90
+        this.tipText = this.data.model.tips
+        this.getUIContext().animateTo({
+          duration: 200,
+          delay: 0,
+          onFinish: () => {
+            this.showBannerAnimation()
+          }
+        }, () => {
+          this.tipAngle = 0
+        })
+      }
+    }, () => {
+      this.tipAngle = 90
+    })
   }
 
   showBannerAnimation() {
@@ -111,42 +149,225 @@ export struct SignInComponent {
   build() {
     Column({ space: 20 }) {
       // 签到数据
-      Column() {
+      Column({ space: 15 }) {
+        if (this.data.model.isNew) {
+          Image($r('app.media.check_in_success_new'))
+            .width(105)
+            .height(62)
+            .objectFit(ImageFit.Auto)
+        } else {
+          Image($r('app.media.check_in_success_normal'))
+            .width(40)
+            .height(40)
+            .objectFit(ImageFit.Fill)
+        }
+        Text(this.data.model.isNew ? '新人7天签到大翻倍' : '今日签到成功')
+          .fontSize(16)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(Color.Black)
+          .textAlign(TextAlign.Center)
 
+        Text(this.tipText)
+          .fontSize(11)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(Color.Red)
+          .backgroundColor('#1AFF0000')
+          .textAlign(TextAlign.Center)
+          .borderRadius(100)
+          .rotate({
+            x: 1,
+            y: 0,
+            z: 0,
+            angle: this.tipAngle,
+            perspective: 1200
+          })
+          .padding({
+            left: 20,
+            right: 20,
+            top: 4,
+            bottom: 4
+          })
+        Flex({
+          direction: FlexDirection.Row,
+          wrap: FlexWrap.Wrap,
+          justifyContent: FlexAlign.Center,
+          alignContent: FlexAlign.Center,
+          alignItems: ItemAlign.Center,
+          space: {
+            main: LengthMetrics.vp(5),
+            cross: LengthMetrics.vp(5)
+          }
+        }) {
+          ForEach(this.data.model.checkinPointList, (item: HomeCheckInItem, index: number) => {
+            SignInCard({
+              data: item,
+              isNewUser: this.data.model.isNew,
+              shouldAnimation: ((item.state === 1) && (item.rank === this.data.model.pointDay)),
+              animationFinished: () => {
+
+              }
+            })
+          })
+        }
+        .width('100%')
+
+        Column({ space: 8 }) {
+          Divider().vertical(false).color('#F4F5F7').strokeWidth(1)
+          Row() {
+            Text('06-12 至 6-19')
+              .fontSize(12)
+              .fontColor(Color.Black)
+              .textAlign(TextAlign.Start)
+            Row({ space: 5 }) {
+              Text('签到提醒')
+                .fontSize(12)
+                .fontColor(Color.Black)
+                .textAlign(TextAlign.Start)
+              Toggle({
+                isOn: true,
+                type: ToggleType.Switch
+              }).width(32).height(16).selectedColor('#52C41A')
+            }
+          }
+          .width('100%')
+          .justifyContent(FlexAlign.SpaceBetween)
+        }
+        .width('100%')
       }
       .width('100%')
-      .height('400')
       .backgroundColor(Color.White)
       .borderRadius(12)
+      .padding({
+        left: 15,
+        right: 15,
+        top: 20,
+        bottom: 8
+      })
       .clip(true)
 
       // 扩展卡片
       if (this.showBanner) {
         Column() {
-
+          Image(this.data.model.rewardBannerImageUrl)
+            .width('100%')
+            .height('100%')
+            .objectFit(ImageFit.Fill)
+            .clip(true)
         }
         .width('100%')
-        .height(100)
+        .aspectRatio(15 / 4)
         .backgroundColor(Color.White)
         .borderRadius(12)
         .clip(true)
+        .transition(TransitionEffect.translate({ y: -100 })
+          .combine(TransitionEffect.opacity(0))
+          .animation({ duration: 200, delay: 0 }))
+        .onClick(() => {
+          this.data.onBannerClick()
+        })
       }
 
       // 关闭按钮
       if (this.showClose) {
         Column() {
-          Image($r('app.media.toast_close'))
-            .width(32)
-            .height(32)
+          Image($r('app.media.check_in_close'))
+            .width(28)
+            .height(28)
+            .opacity(0.6)
             .onClick(() => {
               SignInAlert.close()
             })
         }
+        .transition(
+          TransitionEffect.OPACITY
+            .combine(TransitionEffect.rotate({ angle: 90 }))
+            .combine(TransitionEffect.opacity(0))
+            .animation({ duration: 500, delay: 2000 })
+        )
       }
 
     }
     .width('80%')
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
+  }
+}
+
+@ComponentV2
+export struct SignInCard {
+  @Param @Require data: HomeCheckInItem
+  @Param @Require isNewUser: boolean
+  @Param @Require shouldAnimation: boolean
+  @Event animationFinished: () => void = () => {
+  }
+  @Local textColor: ResourceColor = '#FF9C54'
+  @Local bgImage: Resource = $r('app.media.check_in_card_bg_2')
+  @Local icon: Resource = $r('app.media.check_in_card_coin')
+  @Local point: string = ''
+  @Local mark?: Resource = undefined
+  @Local iconAngle: number = 0
+
+  aboutToAppear(): void {
+    if (this.shouldAnimation) {
+
+    } else {
+      if (this.data.state === 0) {
+        this.textColor = '#FF9C54'
+        this.bgImage = $r('app.media.check_in_card_bg_2')
+        this.icon = $r('app.media.check_in_card_coin')
+        this.point = this.isNewUser ? `${this.data.point}` : `${this.data.quantity}x?`
+      } else if (this.data.state === 1) {
+
+      } else if (this.data.state === 2) {
+
+      }
+    }
+  }
+
+  build() {
+    Stack() {
+      Image(this.bgImage)
+        .width('100%')
+        .height('100%')
+        .objectFit(ImageFit.Fill)
+      Column() {
+        Text() {
+          Span('第')
+          Span(`${this.data.rank}`)
+            .fontWeight(FontWeight.Bold)
+          Span('天')
+        }
+        .width('100%')
+        .fontSize(12)
+        .fontColor(this.textColor)
+        .textAlign(TextAlign.Center)
+
+        Image(this.icon)
+          .width(18)
+          .height(18)
+          .objectFit(ImageFit.Fill)
+        Text('10')
+          .fontSize(12)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.textColor)
+      }
+      .width('100%')
+      .height('100%')
+      .alignItems(HorizontalAlign.Center)
+      .justifyContent(FlexAlign.SpaceBetween)
+      .padding({
+        top: 10,
+        bottom: 10,
+        left: 0,
+        right: 0
+      })
+    }
+    .clip(true)
+    .width('calc((100% - 15vp) / 4)')
+    .aspectRatio(6 / 7)
+    .borderRadius(4)
+    .onAppear(() => {
+
+    })
   }
 }

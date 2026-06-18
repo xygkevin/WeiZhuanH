@@ -6,7 +6,7 @@
  * @Time : 2026/6/17 15:51
  * @Description : 描述
  */
-import { ComponentContent, Frame, LengthMetrics, LevelMode } from "@kit.ArkUI"
+import { ComponentContent, CustomContentDialogV2, Frame, LengthMetrics, LevelMode } from "@kit.ArkUI"
 
 
 /**
@@ -35,7 +35,7 @@ export class AlertParam {
   maskTransition?: TransitionEffect = undefined
   keyboardAvoidDistance?: number = 0
   autoCancel?: boolean = false
-  onCancel?:()=>void = undefined
+  onCancel?: () => void = undefined
 }
 
 /**
@@ -66,9 +66,10 @@ export class AlertUtil {
         dialogTransition: param.dialogTransition,
         maskTransition: param.maskTransition,
         onWillDismiss: (action: DismissDialogAction) => {
-          if (param.autoCancel === true && (action.reason === DismissReason.TOUCH_OUTSIDE || action.reason === DismissReason.PRESS_BACK)) {
+          if (param.autoCancel === true &&
+            (action.reason === DismissReason.TOUCH_OUTSIDE || action.reason === DismissReason.PRESS_BACK)) {
             action.dismiss()
-            if(param.onCancel) {
+            if (param.onCancel) {
               param.onCancel()
             }
           }
