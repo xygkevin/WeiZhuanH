@@ -308,19 +308,33 @@ export struct SignInCard {
   @Local iconAngle: number = 0
 
   aboutToAppear(): void {
-    if (this.shouldAnimation) {
+    if (this.data.state === 0) {
+      this.textColor = '#FF9C54'
+      this.bgImage = $r('app.media.check_in_card_bg_2')
+      this.icon = $r('app.media.check_in_card_coin')
+      this.point = this.isNewUser ? `${this.data.point}x?` : `${this.data.quantity}`
+      this.mark = undefined
+    } else if (this.data.state === 1) {
+      if (this.shouldAnimation) {
+        if (this.isNewUser) { // 新用户
 
-    } else {
-      if (this.data.state === 0) {
-        this.textColor = '#FF9C54'
-        this.bgImage = $r('app.media.check_in_card_bg_2')
-        this.icon = $r('app.media.check_in_card_coin')
-        this.point = this.isNewUser ? `${this.data.point}` : `${this.data.quantity}x?`
-      } else if (this.data.state === 1) {
+        } else { // 老用户
 
-      } else if (this.data.state === 2) {
-
+        }
+      } else {
+        this.textColor = '#FFFFFF'
+        this.bgImage = $r('app.media.check_in_card_bg_3')
+        this.icon = $r('app.media.check_in_card_success')
+        this.point = `${this.data.quantity}`
+        this.mark = $r('app.media.check_in_mark_reward')
       }
+
+    } else if (this.data.state === 2) {
+      this.textColor = '#A6ADC1'
+      this.bgImage = $r('app.media.check_in_card_bg_1')
+      this.icon = $r('app.media.check_in_card_failed')
+      this.point = this.isNewUser ? `${this.data.point}x?` : `${this.data.quantity}`
+      this.mark = $r('app.media.check_in_mark_loss')
     }
   }
 

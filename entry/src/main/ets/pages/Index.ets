@@ -22,15 +22,15 @@ struct Index {
               item0.state = 1
               item0.point = 1
               item0.amount = 10
-              item0.quantity = 10
+              item0.quantity = 1
               item0.multiple = 10
 
               let item1 = new HomeCheckInItem()
               item1.rank = 2
-              item1.state = 1
+              item1.state = 2
               item1.point = 1
               item1.amount = 10
-              item1.quantity = 10
+              item1.quantity = 2
               item1.multiple = 10
 
               let item2 = new HomeCheckInItem()
@@ -38,15 +38,15 @@ struct Index {
               item2.state = 1
               item2.point = 1
               item2.amount = 10
-              item2.quantity = 10
+              item2.quantity = 3
               item2.multiple = 10
 
               let item3 = new HomeCheckInItem()
               item3.rank = 4
-              item3.state = 0
+              item3.state = 1
               item3.point = 1
               item3.amount = 10
-              item3.quantity = 10
+              item3.quantity = 4
               item3.multiple = 10
 
               let item4 = new HomeCheckInItem()
@@ -54,7 +54,7 @@ struct Index {
               item4.state = 0
               item4.point = 1
               item4.amount = 10
-              item4.quantity = 10
+              item4.quantity = 5
               item4.multiple = 10
 
               let item5 = new HomeCheckInItem()
@@ -62,7 +62,7 @@ struct Index {
               item5.state = 0
               item5.point = 1
               item5.amount = 10
-              item5.quantity = 10
+              item5.quantity = 6
               item5.multiple = 10
 
               let item6 = new HomeCheckInItem()
@@ -70,16 +70,16 @@ struct Index {
               item6.state = 0
               item6.point = 1
               item6.amount = 10
-              item6.quantity = 10
+              item6.quantity = 7
               item6.multiple = 10
 
               let model = new HomeCheckInModel()
-              model.preTips = '再签到5天, 权益值+1哦'
-              model.tips = '再签到4天, 权益值+1哦'
+              model.preTips = '再签到4天, 权益值+1哦'
+              model.tips = '再签到3天, 权益值+1哦'
               model.id = 4354
               model.isNew = false
               model.pollId = 'fs4t'
-              model.day = 2
+              model.day = 4
               model.result = false
               model.point = 10
               model.amount = 12
