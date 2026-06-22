@@ -25,7 +25,7 @@ struct Index {
               item0.point = 1
               item0.amount = 10
               item0.quantity = 1
-              item0.multiple = 10
+              item0.multiple = 4
 
               let item1 = new HomeCheckInItem()
               item1.rank = 2
@@ -33,7 +33,7 @@ struct Index {
               item1.point = 1
               item1.amount = 10
               item1.quantity = 2
-              item1.multiple = 10
+              item1.multiple = 2
 
               let item2 = new HomeCheckInItem()
               item2.rank = 3
@@ -41,15 +41,15 @@ struct Index {
               item2.point = 1
               item2.amount = 10
               item2.quantity = 3
-              item2.multiple = 10
+              item2.multiple = 5
 
               let item3 = new HomeCheckInItem()
               item3.rank = 4
               item3.state = 1
-              item3.point = 1
-              item3.amount = 10
-              item3.quantity = 4
-              item3.multiple = 10
+              item3.point = 4
+              item3.amount = 4
+              item3.quantity = 16
+              item3.multiple = 4
 
               let item4 = new HomeCheckInItem()
               item4.rank = 5
@@ -57,7 +57,7 @@ struct Index {
               item4.point = 1
               item4.amount = 10
               item4.quantity = 5
-              item4.multiple = 10
+              item4.multiple = 8
 
               let item5 = new HomeCheckInItem()
               item5.rank = 6
@@ -65,7 +65,7 @@ struct Index {
               item5.point = 1
               item5.amount = 10
               item5.quantity = 6
-              item5.multiple = 10
+              item5.multiple = 5
 
               let item6 = new HomeCheckInItem()
               item6.rank = 7
@@ -238,19 +238,20 @@ struct Index {
 
                 }
               }, () => {
-                this.offsetY = -20 * Math.ceil(Math.random() * 20)
+                this.offsetY = -20 * Math.ceil(Math.random() * 10)
               })
             })
 
           Column() {
             Column() {
-              ForEach([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], (item: number) => {
-                Text(`${item}`)
-                  .fontSize(15)
-                  .fontWeight(FontWeight.Medium)
-                  .fontColor(Color.Black)
-                  .height(20)
-              })
+              ForEach(['?', '2', '3', '4', '5', '6', '7', '8', '9', '10', '2', '3', '4', '6', '7', '8', '9', '10'],
+                (item: string) => {
+                  Text(item)
+                    .fontSize(15)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(Color.Black)
+                    .height(20)
+                })
             }
             .translate({
               x: 0,

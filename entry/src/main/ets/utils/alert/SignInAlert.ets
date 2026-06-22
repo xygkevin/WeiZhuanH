@@ -7,6 +7,7 @@
  * @Description : 描述
  */
 import { ComponentContent, curves, LengthMetrics, LevelMode } from "@kit.ArkUI"
+import { PixelUtil } from "../pixel/PixelUtil"
 import { HomeCheckInItem, HomeCheckInModel } from "./HomeCheckInModel"
 
 
@@ -86,7 +87,7 @@ function buildSignInAlert(param: SignInAlertParam) {
 export struct SignInComponent {
   @Param @Require data: SignInData
   @Local showBanner: boolean = false
-  @Local showClose: boolean = true
+  @Local showClose: boolean = false
   @Local closeAngle: number = 0
   @Local closeOpacity: number = 0
   @Local tipText: string = ''
@@ -94,10 +95,6 @@ export struct SignInComponent {
 
   aboutToAppear(): void {
     this.tipText = this.data.model.preTips
-    setTimeout(() => {
-      this.showTipsAnimation()
-    }, 1000)
-
   }
 
   /**
@@ -114,8 +111,7 @@ export struct SignInComponent {
           duration: 200,
           delay: 0,
           onFinish: () => {
-            // this.showBannerAnimation()
-            this.showCloseAnimation()
+            this.showBannerAnimation()
           }
         }, () => {
           this.tipAngle = 0
@@ -146,7 +142,7 @@ export struct SignInComponent {
    */
   showCloseAnimation() {
     this.getUIContext().animateTo({
-      duration: 200,
+      duration: 500,
       delay: 1000,
       onFinish: () => {
 
@@ -214,7 +210,7 @@ export struct SignInComponent {
               isNewUser: this.data.model.isNew,
               shouldAnimation: ((item.state === 1) && (item.rank === this.data.model.pointDay)),
               onAnimationFinish: () => {
-                this.showBannerAnimation()
+                this.showTipsAnimation()
               }
             })
           })
@@ -269,8 +265,7 @@ export struct SignInComponent {
         .backgroundColor(Color.White)
         .borderRadius(12)
         .clip(true)
-        .transition(TransitionEffect.translate({ y: -100 })
-          .combine(TransitionEffect.opacity(0))
+        .transition(TransitionEffect.opacity(0)
           .animation({ duration: 200, delay: 0 }))
         .onClick(() => {
           this.data.onBannerClick()
@@ -283,16 +278,18 @@ export struct SignInComponent {
           Image($r('app.media.check_in_close'))
             .width(28)
             .height(28)
-            .opacity(0.6)
             .onClick(() => {
               SignInAlert.close()
             })
         }
+        .margin({
+          top: 10
+        })
         .transition(
           TransitionEffect.OPACITY
-            .combine(TransitionEffect.rotate({ angle: 90 }))
+            .combine(TransitionEffect.rotate({ angle: 180 }))
             .combine(TransitionEffect.opacity(0))
-            .animation({ duration: 500, delay: 2000 })
+            .animation({ duration: 500, delay: 1000 })
         )
       }
 
@@ -318,6 +315,10 @@ export struct SignInCard {
   @Local iconAngle: number = 0
   @Local bgOpacity: number = 0
   @Local cardScale: number = 1
+  @Local scrollOffsetY: number = 0
+  private numberHeight: number = PixelUtil.px2vp(
+    Number(this.getUIContext().getMeasureUtils().measureTextSize({ fontSize: 12, textContent: '123' }).height))
+  @Local scrollFinish: boolean = false
 
   aboutToAppear(): void {
     if (this.data.state === 0) {
@@ -332,7 +333,7 @@ export struct SignInCard {
         this.textColor = '#A6ADC1'
         this.bgImage = $r('app.media.check_in_card_bg_3')
         this.icon = $r('app.media.check_in_card_coin')
-        this.point = this.isNewUser ? `${this.data.point}x?` : `${this.data.quantity}`
+        this.point = this.isNewUser ? `${this.data.point}x` : `${this.data.quantity}`
         this.mark = undefined
         this.bgOpacity = 0
       } else {
@@ -353,6 +354,9 @@ export struct SignInCard {
     }
   }
 
+  /**
+   * 开启动画
+   */
   startAnimation() {
     if (this.data.state === 1 && this.shouldAnimation) {
       if (this.isNewUser) {
@@ -364,16 +368,20 @@ export struct SignInCard {
     }
   }
 
+  /**
+   * 数字滚动动画
+   */
   runAnimation() {
     this.getUIContext().animateTo({
       duration: 2000,
       delay: 500,
       onFinish: () => {
+        this.scrollFinish = true
         this.bgAnimation()
         this.iconAnimation()
       }
     }, () => {
-
+      this.scrollOffsetY = -this.numberHeight * ((this.data.multiple ?? 1) - 1 + 9)
     })
   }
 
@@ -401,12 +409,12 @@ export struct SignInCard {
       duration: 400,
       delay: 1000,
       onFinish: () => {
+        this.point = `${this.data.quantity}`
         this.mark = $r('app.media.check_in_mark_reward')
         this.cardScaleAnimation()
       }
     }, () => {
       this.textColor = '#FFFFFF'
-      this.point = `${this.data.quantity}`
       this.bgOpacity = 1
     })
   }
@@ -471,10 +479,37 @@ export struct SignInCard {
           .onAppear(() => {
             this.startAnimation()
           })
-        Text(this.point)
-          .fontSize(12)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(this.textColor)
+        Row() {
+          Text(this.point)
+            .fontSize(12)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.textColor)
+          if (this.isNewUser && this.shouldAnimation && !this.scrollFinish) {
+            Column() {
+              Column() {
+                ForEach(['?', '2', '3', '4', '5', '6', '7', '8', '9', '10', '2', '3', '4', '6', '7', '8', '9', '10'],
+                  (item: string) => {
+                    Text(item)
+                      .fontSize(12)
+                      .fontColor(this.textColor)
+                      .fontWeight(FontWeight.Bold)
+                      .textAlign(TextAlign.Start)
+                      .height(this.numberHeight)
+                  })
+              }
+              .alignItems(HorizontalAlign.Start)
+              .translate({
+                x: 0,
+                y: this.scrollOffsetY
+              })
+            }
+            .height(this.numberHeight)
+            .clip(true)
+          }
+        }
+        .offset({
+          x: (!this.shouldAnimation || this.scrollFinish) ? 0 : this.numberHeight / 3
+        })
       }
       .width('100%')
       .height('100%')
