@@ -8,6 +8,8 @@ import { RouterUtil } from '../utils/router/RouterUtil'
 @Entry
 @ComponentV2
 struct Index {
+  @Local offsetY: number = 0
+
   build() {
     Stack() {
       Navigation(RouterUtil.navPathStack) {
@@ -77,13 +79,13 @@ struct Index {
               model.preTips = '再签到4天, 权益值+1哦'
               model.tips = '再签到3天, 权益值+1哦'
               model.id = 4354
-              model.isNew = false
+              model.isNew = true
               model.pollId = 'fs4t'
-              model.day = 4
+              model.day = 1
               model.result = false
               model.point = 10
               model.amount = 12
-              model.pointDay = 3
+              model.pointDay = 4
               model.credit = 1
               model.startDate = '06-01'
               model.endDate = '06-30'
@@ -223,6 +225,41 @@ struct Index {
                 }
               })
             })
+
+          Button('数字滚动动画')
+            .width(200)
+            .height(36)
+            .onClick(() => {
+              this.getUIContext().animateTo({
+                duration: 1000,
+                delay: 0,
+                curve: Curve.LinearOutSlowIn,
+                onFinish: () => {
+
+                }
+              }, () => {
+                this.offsetY = -20 * Math.ceil(Math.random() * 20)
+              })
+            })
+
+          Column() {
+            Column() {
+              ForEach([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], (item: number) => {
+                Text(`${item}`)
+                  .fontSize(15)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(Color.Black)
+                  .height(20)
+              })
+            }
+            .translate({
+              x: 0,
+              y: this.offsetY
+            })
+          }
+          .height(20)
+          .clip(true)
+
         }
         .justifyContent(FlexAlign.Center)
         .width('100%')

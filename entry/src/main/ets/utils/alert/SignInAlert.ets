@@ -100,6 +100,9 @@ export struct SignInComponent {
 
   }
 
+  /**
+   * 提示语展示动画
+   */
   showTipsAnimation() {
     this.getUIContext().animateTo({
       duration: 200,
@@ -111,7 +114,8 @@ export struct SignInComponent {
           duration: 200,
           delay: 0,
           onFinish: () => {
-            this.showBannerAnimation()
+            // this.showBannerAnimation()
+            this.showCloseAnimation()
           }
         }, () => {
           this.tipAngle = 0
@@ -122,6 +126,9 @@ export struct SignInComponent {
     })
   }
 
+  /**
+   * Banner展示动画
+   */
   showBannerAnimation() {
     this.getUIContext().animateTo({
       duration: 200,
@@ -134,6 +141,9 @@ export struct SignInComponent {
     })
   }
 
+  /**
+   * 关闭按钮展示动画
+   */
   showCloseAnimation() {
     this.getUIContext().animateTo({
       duration: 200,
@@ -203,8 +213,8 @@ export struct SignInComponent {
               data: item,
               isNewUser: this.data.model.isNew,
               shouldAnimation: ((item.state === 1) && (item.rank === this.data.model.pointDay)),
-              animationFinished: () => {
-
+              onAnimationFinish: () => {
+                this.showBannerAnimation()
               }
             })
           })
@@ -295,17 +305,19 @@ export struct SignInComponent {
 
 @ComponentV2
 export struct SignInCard {
+  @Event onAnimationFinish: () => void = () => {
+  }
   @Param @Require data: HomeCheckInItem
   @Param @Require isNewUser: boolean
   @Param @Require shouldAnimation: boolean
-  @Event animationFinished: () => void = () => {
-  }
   @Local textColor: ResourceColor = '#FF9C54'
   @Local bgImage: Resource = $r('app.media.check_in_card_bg_2')
   @Local icon: Resource = $r('app.media.check_in_card_coin')
   @Local point: string = ''
   @Local mark?: Resource = undefined
   @Local iconAngle: number = 0
+  @Local bgOpacity: number = 0
+  @Local cardScale: number = 1
 
   aboutToAppear(): void {
     if (this.data.state === 0) {
@@ -314,36 +326,126 @@ export struct SignInCard {
       this.icon = $r('app.media.check_in_card_coin')
       this.point = this.isNewUser ? `${this.data.point}x?` : `${this.data.quantity}`
       this.mark = undefined
+      this.bgOpacity = 0
     } else if (this.data.state === 1) {
       if (this.shouldAnimation) {
-        if (this.isNewUser) { // 新用户
-
-        } else { // 老用户
-
-        }
+        this.textColor = '#A6ADC1'
+        this.bgImage = $r('app.media.check_in_card_bg_3')
+        this.icon = $r('app.media.check_in_card_coin')
+        this.point = this.isNewUser ? `${this.data.point}x?` : `${this.data.quantity}`
+        this.mark = undefined
+        this.bgOpacity = 0
       } else {
         this.textColor = '#FFFFFF'
         this.bgImage = $r('app.media.check_in_card_bg_3')
         this.icon = $r('app.media.check_in_card_success')
         this.point = `${this.data.quantity}`
         this.mark = $r('app.media.check_in_mark_reward')
+        this.bgOpacity = 1
       }
-
     } else if (this.data.state === 2) {
       this.textColor = '#A6ADC1'
       this.bgImage = $r('app.media.check_in_card_bg_1')
       this.icon = $r('app.media.check_in_card_failed')
       this.point = this.isNewUser ? `${this.data.point}x?` : `${this.data.quantity}`
       this.mark = $r('app.media.check_in_mark_loss')
+      this.bgOpacity = 1
     }
+  }
+
+  startAnimation() {
+    if (this.data.state === 1 && this.shouldAnimation) {
+      if (this.isNewUser) {
+        this.runAnimation()
+      } else {
+        this.bgAnimation()
+        this.iconAnimation()
+      }
+    }
+  }
+
+  runAnimation() {
+    this.getUIContext().animateTo({
+      duration: 2000,
+      delay: 500,
+      onFinish: () => {
+        this.bgAnimation()
+        this.iconAnimation()
+      }
+    }, () => {
+
+    })
+  }
+
+  iconAnimation() {
+    this.getUIContext().animateTo({
+      duration: 200,
+      delay: 1000,
+      onFinish: () => {
+        this.iconAngle = -90
+        this.icon = $r('app.media.check_in_card_success')
+        this.getUIContext().animateTo({
+          duration: 200,
+          delay: 0
+        }, () => {
+          this.iconAngle = 0
+        })
+      }
+    }, () => {
+      this.iconAngle = 90
+    })
+  }
+
+  bgAnimation() {
+    this.getUIContext().animateTo({
+      duration: 400,
+      delay: 1000,
+      onFinish: () => {
+        this.mark = $r('app.media.check_in_mark_reward')
+        this.cardScaleAnimation()
+      }
+    }, () => {
+      this.textColor = '#FFFFFF'
+      this.point = `${this.data.quantity}`
+      this.bgOpacity = 1
+    })
+  }
+
+  cardScaleAnimation() {
+    this.getUIContext().animateTo({
+      duration: 100,
+      delay: 0,
+      onFinish: () => {
+        this.getUIContext().animateTo({
+          duration: 100,
+          delay: 0,
+          onFinish: () => {
+            this.onAnimationFinish()
+          }
+        }, () => {
+          this.cardScale = 1
+        })
+      }
+    }, () => {
+      this.cardScale = 0.94
+    })
   }
 
   build() {
     Stack() {
-      Image(this.bgImage)
-        .width('100%')
-        .height('100%')
-        .objectFit(ImageFit.Fill)
+      Stack() {
+        Image($r('app.media.check_in_card_bg_2'))
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Fill)
+          .opacity(1 - this.bgOpacity)
+        Image(this.bgImage)
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Fill)
+          .opacity(this.bgOpacity)
+      }
+
       Column() {
         Text() {
           Span('第')
@@ -360,7 +462,16 @@ export struct SignInCard {
           .width(18)
           .height(18)
           .objectFit(ImageFit.Fill)
-        Text('10')
+          .rotate({
+            x: 0,
+            y: 1,
+            z: 0,
+            angle: this.iconAngle
+          })
+          .onAppear(() => {
+            this.startAnimation()
+          })
+        Text(this.point)
           .fontSize(12)
           .fontWeight(FontWeight.Bold)
           .fontColor(this.textColor)
@@ -375,11 +486,28 @@ export struct SignInCard {
         left: 0,
         right: 0
       })
+
+      if (this.mark) {
+        Image(this.mark)
+          .width(40)
+          .height(40)
+          .objectFit(ImageFit.Fill)
+          .position({
+            bottom: -14,
+            right: -10
+          })
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.scale({ x: 1.2, y: 1.2 }))
+            .animation({ duration: 500, delay: 0, curve: curves.springCurve(0, 1, 400, 18) }))
+      }
     }
     .clip(true)
     .width('calc((100% - 15vp) / 4)')
     .aspectRatio(6 / 7)
     .borderRadius(4)
+    .scale({
+      x: this.cardScale,
+      y: this.cardScale
+    })
     .onAppear(() => {
 
     })
