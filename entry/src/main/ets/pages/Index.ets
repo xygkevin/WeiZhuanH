@@ -1,5 +1,10 @@
 import { AlertUtil } from '../utils/alert/AlertUtil'
-import { HomeCheckInItem, HomeCheckInModel } from '../utils/alert/HomeCheckInModel'
+import {
+  HomeCheckInItem,
+  HomeCheckInModel,
+  HomeCheckInTalkTask,
+  HomeCheckInTask
+} from '../utils/alert/HomeCheckInModel'
 import { SheetUtil } from '../utils/alert/SheetUtil'
 import { SignInAlert, SignInData } from '../utils/alert/SignInAlert'
 import { RouterUtil } from '../utils/router/RouterUtil'
@@ -79,7 +84,7 @@ struct Index {
               model.preTips = '再签到4天, 权益值+1哦'
               model.tips = '再签到3天, 权益值+1哦'
               model.id = 4354
-              model.isNew = true
+              model.isNew = false
               model.pollId = 'fs4t'
               model.day = 1
               model.result = false
@@ -89,20 +94,40 @@ struct Index {
               model.credit = 1
               model.startDate = '06-01'
               model.endDate = '06-30'
-              model.taskPoint = 100
               model.checkinNotification = true
-              model.rewardBannerImageUrl =
-                'https://pic.nximg.cn/file/20230816/13675713_095319364109_2.jpg'
               model.checkinPointList = [
                 item0, item1, item2, item3, item4, item5, item6
               ]
+
+              // model.talkTask = new HomeCheckInTalkTask()
+              // model.talkTask.talkTaskId = '2f34'
+              // model.talkTask.talkTaskBanner = 'https://pic.nximg.cn/file/20230816/13675713_095319364109_2.jpg'
+              // model.talkTask.talkUrl = 'https://www.baidu.com'
+
+              model.task = new HomeCheckInTask()
+              model.task.point = 1000
+              model.task.title = '今日还能赚1000金币!'
+              model.task.tips = '时不我待, 只争朝夕'
+              model.task.taskId = 'ge4f34'
+              model.taskPoint = 100
+
+
+              // model.showRewardAd = true
+              // model.rewardBannerImageUrl =
+              //   'https://pic.nximg.cn/file/20230816/13675713_095319364109_2.jpg'
+
+
               const data: SignInData = {
                 model: model,
-                onBannerClick: () => {
+                onBannerTaskClick: () => {
                 },
                 onToggleChange: () => {
                 },
                 onClosed: () => {
+                },
+                onBannerTopicClick: (task: HomeCheckInTalkTask): void => {
+                },
+                onBannerRewardAdClick: (url: string): void => {
                 }
               }
               SignInAlert.show(this.getUIContext(), { data: data })

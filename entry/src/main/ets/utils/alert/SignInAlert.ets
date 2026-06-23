@@ -6,18 +6,47 @@
  * @Time : 2026/6/17 18:40
  * @Description : 描述
  */
-import { ComponentContent, curves, LengthMetrics, LevelMode } from "@kit.ArkUI"
+import {
+  AnimatedDrawableDescriptor,
+  AnimationOptions,
+  AnimationStopMode,
+  ComponentContent,
+  curves,
+  LengthMetrics,
+  LevelMode
+} from "@kit.ArkUI"
 import { PixelUtil } from "../pixel/PixelUtil"
-import { HomeCheckInItem, HomeCheckInModel } from "./HomeCheckInModel"
+import { HomeCheckInItem, HomeCheckInModel, HomeCheckInTalkTask, HomeCheckInTask } from "./HomeCheckInModel"
+import { image } from "@kit.ImageKit"
 
 
 /**
- * 签到数据
+ * 签到弹窗参数
  */
 export interface SignInData {
+  /**
+   * 数据
+   */
   model: HomeCheckInModel
-  onBannerClick: () => void
+  /**
+   * Banner任务点击事件
+   */
+  onBannerTaskClick: (task: HomeCheckInTask) => void
+  /**
+   * Banner趣谈点击事件
+   */
+  onBannerTopicClick: (task: HomeCheckInTalkTask) => void
+  /**
+   * Banner广告点击事件
+   */
+  onBannerRewardAdClick: (url: string) => void
+  /**
+   * 通知开关
+   */
   onToggleChange: (isOn: boolean) => void
+  /**
+   * 弹窗关闭
+   */
   onClosed: () => void
 }
 
@@ -92,9 +121,30 @@ export struct SignInComponent {
   @Local closeOpacity: number = 0
   @Local tipText: string = ''
   @Local tipAngle: number = 0
+  @Local showCredit: boolean = false
+  @Local creditOffsetY: number = 100
+  @Local creditOpacity: number = 0
+  @Local ringAngle: number = 0
+  private ringTimer?: number
+  @Local animatedImages: Array<ImageFrameInfo> = []
+  @Local animatedState: AnimationStatus = AnimationStatus.Initial
 
-  aboutToAppear(): void {
+  async aboutToAppear(): Promise<void> {
+    this.showCredit = (this.data.model.credit !== undefined && this.data.model.credit > 0)
     this.tipText = this.data.model.preTips
+    if (!this.data.model.isNew) {
+      this.animatedImages = []
+      for (let index = 0; index < 40; index++) {
+        let resource = $r(`app.media.sign_in_success_${index}`)
+        if (resource) {
+          this.animatedImages.push({ src: resource })
+        }
+      }
+    }
+  }
+
+  aboutToDisappear(): void {
+    this.clearRingTimer
   }
 
   /**
@@ -126,15 +176,20 @@ export struct SignInComponent {
    * Banner展示动画
    */
   showBannerAnimation() {
-    this.getUIContext().animateTo({
-      duration: 200,
-      delay: 0,
-      onFinish: () => {
-        this.showCloseAnimation()
-      }
-    }, () => {
-      this.showBanner = true
-    })
+    if (this.data.model.talkTask || (this.data.model.showRewardAd && this.data.model.rewardBannerImageUrl) ||
+      this.data.model.task) {
+      this.getUIContext().animateTo({
+        duration: 200,
+        delay: 0,
+        onFinish: () => {
+          this.showCloseAnimation()
+        }
+      }, () => {
+        this.showBanner = true
+      })
+    } else {
+      this.showCloseAnimation()
+    }
   }
 
   /**
@@ -152,151 +207,302 @@ export struct SignInComponent {
     })
   }
 
-  build() {
-    Column({ space: 20 }) {
-      // 签到数据
-      Column({ space: 15 }) {
-        if (this.data.model.isNew) {
-          Image($r('app.media.check_in_success_new'))
-            .width(105)
-            .height(62)
-            .objectFit(ImageFit.Auto)
-        } else {
-          Image($r('app.media.check_in_success_normal'))
-            .width(40)
-            .height(40)
-            .objectFit(ImageFit.Fill)
-        }
-        Text(this.data.model.isNew ? '新人7天签到大翻倍' : '今日签到成功')
-          .fontSize(16)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(Color.Black)
-          .textAlign(TextAlign.Center)
+  showCreditAnimation() {
+    if (!this.showCredit) {
+      return
+    }
 
-        Text(this.tipText)
-          .fontSize(11)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(Color.Red)
-          .backgroundColor('#1AFF0000')
-          .textAlign(TextAlign.Center)
-          .borderRadius(100)
-          .rotate({
-            x: 1,
-            y: 0,
-            z: 0,
-            angle: this.tipAngle,
-            perspective: 1200
-          })
-          .padding({
-            left: 20,
-            right: 20,
-            top: 4,
-            bottom: 4
-          })
-        Flex({
-          direction: FlexDirection.Row,
-          wrap: FlexWrap.Wrap,
-          justifyContent: FlexAlign.Center,
-          alignContent: FlexAlign.Center,
-          alignItems: ItemAlign.Center,
-          space: {
-            main: LengthMetrics.vp(5),
-            cross: LengthMetrics.vp(5)
+    this.getUIContext().animateTo({
+      duration: 500,
+      delay: 0,
+      curve: curves.springCurve(0, 1, 300, 28),
+      onFinish: () => {
+        this.getUIContext().animateTo({
+          duration: 500,
+          delay: 1000,
+          onFinish: () => {
+            this.showCredit = false
           }
-        }) {
-          ForEach(this.data.model.checkinPointList, (item: HomeCheckInItem, index: number) => {
-            SignInCard({
-              data: item,
-              isNewUser: this.data.model.isNew,
-              shouldAnimation: ((item.state === 1) && (item.rank === this.data.model.pointDay)),
-              onAnimationFinish: () => {
-                this.showTipsAnimation()
-              }
-            })
-          })
-        }
-        .width('100%')
+        }, () => {
+          this.creditOffsetY = -100
+          this.creditOpacity = 0
+        })
+      }
+    }, () => {
+      this.creditOffsetY = 0
+      this.creditOpacity = 1
+    })
+  }
 
-        Column({ space: 8 }) {
-          Divider().vertical(false).color('#F4F5F7').strokeWidth(1)
-          Row() {
-            Text('06-12 至 6-19')
-              .fontSize(12)
-              .fontColor(Color.Black)
-              .textAlign(TextAlign.Start)
-            Row({ space: 5 }) {
-              Text('签到提醒')
+  /**
+   * 摇铃动画
+   */
+  showRingAnimation() {
+    this.clearRingTimer()
+    this.ringTimer = setInterval(() => {
+      [-15, 15, -8, 8, -2, 2, 0].forEach((value: number, index: number) => {
+        this.getUIContext().animateTo({
+          duration: 40,
+          curve: index === 0 ? Curve.EaseOut : Curve.EaseInOut,
+          delay: index * 40,
+          iterations: 1
+        }, () => {
+          this.ringAngle = value
+        })
+      })
+    }, 1000)
+  }
+
+  clearRingTimer() {
+    clearInterval(this.ringTimer)
+  }
+
+  build() {
+    Stack() {
+      Column({ space: 20 }) {
+        // 签到数据
+        Column({ space: 15 }) {
+          if (this.data.model.isNew) {
+            Image($r('app.media.check_in_success_new'))
+              .width(105)
+              .height(62)
+              .objectFit(ImageFit.Auto)
+          } else {
+            if (this.animatedImages.length > 0) {
+              ImageAnimator()
+                .images(this.animatedImages)
+                .state(this.animatedState)
+                .duration(1000)
+                .reverse(false)
+                .fillMode(FillMode.Forwards)
+                .iterations(1)
+                .width(32)
+                .height(32)
+                .monitorInvisibleArea(true)
+                .onAppear(() => {
+                  this.animatedState = AnimationStatus.Running
+                })
+                .onFinish(() => {
+                  this.animatedState = AnimationStatus.Stopped
+                })
+            } else {
+              Image($r('app.media.check_in_success_normal'))
+                .width(32)
+                .height(32)
+                .objectFit(ImageFit.Fill)
+            }
+          }
+          Text(this.data.model.isNew ? '新人7天签到大翻倍' : '今日签到成功')
+            .fontSize(16)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(Color.Black)
+            .textAlign(TextAlign.Center)
+
+          Text(this.tipText)
+            .fontSize(11)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(Color.Red)
+            .backgroundColor('#1AFF0000')
+            .textAlign(TextAlign.Center)
+            .borderRadius(100)
+            .rotate({
+              x: 1,
+              y: 0,
+              z: 0,
+              angle: this.tipAngle,
+              perspective: 1200
+            })
+            .padding({
+              left: 20,
+              right: 20,
+              top: 4,
+              bottom: 4
+            })
+          Flex({
+            direction: FlexDirection.Row,
+            wrap: FlexWrap.Wrap,
+            justifyContent: FlexAlign.Center,
+            alignContent: FlexAlign.Center,
+            alignItems: ItemAlign.Center,
+            space: {
+              main: LengthMetrics.vp(8),
+              cross: LengthMetrics.vp(8)
+            }
+          }) {
+            ForEach(this.data.model.checkinPointList, (item: HomeCheckInItem, index: number) => {
+              SignInCard({
+                data: item,
+                isNewUser: this.data.model.isNew,
+                shouldAnimation: ((item.state === 1) && (item.rank === this.data.model.pointDay)),
+                onAnimationFinish: () => {
+                  this.showTipsAnimation()
+                  this.showCreditAnimation()
+                }
+              })
+            })
+          }
+          .width('100%')
+
+          Column({ space: 8 }) {
+            Divider().vertical(false).color('#F4F5F7').strokeWidth(1)
+            Row() {
+              Text(this.data.model.isNew ? `${this.data.model.startDate}-${this.data.model.endDate}` : '')
                 .fontSize(12)
                 .fontColor(Color.Black)
                 .textAlign(TextAlign.Start)
-              Toggle({
-                isOn: true,
-                type: ToggleType.Switch
-              }).width(32).height(16).selectedColor('#52C41A')
+              Row({ space: 5 }) {
+                Text('签到提醒')
+                  .fontSize(12)
+                  .fontColor(Color.Black)
+                  .textAlign(TextAlign.Start)
+                Toggle({
+                  isOn: this.data.model.checkinNotification,
+                  type: ToggleType.Switch,
+                }).width(32)
+                  .height(16)
+                  .selectedColor('#52C41A')
+                  .onChange((isOn: boolean) => {
+                    this.data.onToggleChange(isOn)
+                  })
+              }
+            }
+            .width('100%')
+            .justifyContent(FlexAlign.SpaceBetween)
+            .alignItems(VerticalAlign.Center)
+          }
+          .width('100%')
+        }
+        .width('100%')
+        .backgroundColor(Color.White)
+        .borderRadius(12)
+        .padding({
+          left: 15,
+          right: 15,
+          top: 20,
+          bottom: 8
+        })
+        .clip(true)
+
+        // 扩展卡片
+        if (this.showBanner) {
+          Column() {
+            // 优先级: 趣谈任务 > 广告 > 任务推荐
+            if (this.data.model.talkTask) {
+              Image(this.data.model.talkTask.talkTaskBanner)
+                .width('100%')
+                .height('100%')
+                .objectFit(ImageFit.Fill)
+                .clip(true)
+                .onClick(() => {
+                  SignInAlert.close()
+                  this.data.onBannerTopicClick(this.data.model.talkTask!)
+                })
+            } else if (this.data.model.rewardBannerImageUrl) {
+              Image(this.data.model.rewardBannerImageUrl)
+                .width('100%')
+                .height('100%')
+                .objectFit(ImageFit.Fill)
+                .clip(true)
+                .onClick(() => {
+                  SignInAlert.close()
+                  this.data.onBannerRewardAdClick(this.data.model.rewardBannerImageUrl)
+                })
+            } else if (this.data.model.task) {
+              Row({ space: 5 }) {
+                Column({ space: 5 }) {
+                  Text(this.data.model.task.title ?? `今日还能再赚${this.data.model.task.point}金币!`)
+                    .fontSize(16)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor('#FE4E53')
+                  Text(this.data.model.task.tips ?? '配额甄别又如何，水滴不亦化成河？')
+                    .fontSize(12)
+                    .fontColor('#A6ADC1')
+                }
+                .height('100%')
+                .layoutWeight(1)
+                .alignItems(HorizontalAlign.Start)
+                .justifyContent(FlexAlign.Center)
+
+                Image($r('app.media.check_in_banner_go'))
+                  .height('60%')
+                  .aspectRatio(1)
+                  .objectFit(ImageFit.Contain)
+                  .rotate({
+                    x: 0,
+                    y: 0,
+                    z: 1,
+                    angle: this.ringAngle
+                  })
+                  .onAppear(() => {
+                    this.showRingAnimation()
+                  })
+                  .onClick(() => {
+                    SignInAlert.close()
+                    this.data.onBannerTaskClick(this.data.model.task!)
+                  })
+
+              }
+              .padding({
+                left: 15,
+                right: 15
+              })
             }
           }
           .width('100%')
-          .justifyContent(FlexAlign.SpaceBetween)
+          .aspectRatio(15 / 4)
+          .backgroundColor(Color.White)
+          .borderRadius(12)
+          .clip(true)
+          .transition(TransitionEffect.opacity(0)
+            .animation({ duration: 200, delay: 0 }))
         }
-        .width('100%')
+
+        // 关闭按钮
+        if (this.showClose) {
+          Column() {
+            Image($r('app.media.check_in_close'))
+              .width(28)
+              .height(28)
+              .onClick(() => {
+                SignInAlert.close()
+                this.data.onClosed()
+              })
+          }
+          .margin({
+            top: 10
+          })
+          .transition(
+            TransitionEffect.OPACITY
+              .combine(TransitionEffect.rotate({ angle: 180 }))
+              .combine(TransitionEffect.opacity(0))
+              .animation({ duration: 500, delay: 1000 })
+          )
+        }
+
       }
       .width('100%')
-      .backgroundColor(Color.White)
-      .borderRadius(12)
-      .padding({
-        left: 15,
-        right: 15,
-        top: 20,
-        bottom: 8
-      })
-      .clip(true)
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
 
-      // 扩展卡片
-      if (this.showBanner) {
-        Column() {
-          Image(this.data.model.rewardBannerImageUrl)
-            .width('100%')
-            .height('100%')
-            .objectFit(ImageFit.Fill)
-            .clip(true)
-        }
-        .width('100%')
-        .aspectRatio(15 / 4)
-        .backgroundColor(Color.White)
-        .borderRadius(12)
-        .clip(true)
-        .transition(TransitionEffect.opacity(0)
-          .animation({ duration: 200, delay: 0 }))
-        .onClick(() => {
-          this.data.onBannerClick()
-        })
+      if (this.showCredit) {
+        Text(`权益值+${this.data.model.credit}`)
+          .fontSize(12)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(Color.White)
+          .height(24)
+          .padding({
+            left: 15,
+            right: 15
+          })
+          .translate({
+            y: this.creditOffsetY
+          })
+          .opacity(this.creditOpacity)
+          .borderRadius(12)
+          .backgroundColor(Color.Black)
       }
-
-      // 关闭按钮
-      if (this.showClose) {
-        Column() {
-          Image($r('app.media.check_in_close'))
-            .width(28)
-            .height(28)
-            .onClick(() => {
-              SignInAlert.close()
-            })
-        }
-        .margin({
-          top: 10
-        })
-        .transition(
-          TransitionEffect.OPACITY
-            .combine(TransitionEffect.rotate({ angle: 180 }))
-            .combine(TransitionEffect.opacity(0))
-            .animation({ duration: 500, delay: 1000 })
-        )
-      }
-
     }
     .width('80%')
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
   }
 }
 
@@ -508,7 +714,7 @@ export struct SignInCard {
           }
         }
         .offset({
-          x: (!this.shouldAnimation || this.scrollFinish) ? 0 : this.numberHeight / 3
+          x: (!this.shouldAnimation || this.scrollFinish || !this.isNewUser) ? 0 : this.numberHeight / 3
         })
       }
       .width('100%')
@@ -536,7 +742,7 @@ export struct SignInCard {
       }
     }
     .clip(true)
-    .width('calc((100% - 15vp) / 4)')
+    .width('calc((100% - 24vp) / 4)')
     .aspectRatio(6 / 7)
     .borderRadius(4)
     .scale({
