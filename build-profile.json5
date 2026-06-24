@@ -5,13 +5,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "certpath": "/Users/xuyaguang/.ohos/config/default_WeiZhuanH_OBZQTbLM3Qy8ffr6Z1YGE8UBqt0QecHAnXh4nycZ_Yk=.cer",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000001BD7D1910108916C194C1422448D660F6A655C9676A75567749ED53F126F8B77A09477EA8ECB3986",
-          "profile": "/Users/xuyaguang/.ohos/config/default_WeiZhuanH_OBZQTbLM3Qy8ffr6Z1YGE8UBqt0QecHAnXh4nycZ_Yk=.p7b",
+          "storeFile": "/Users/xuyaguang/Desktop/Huawei/HarmonyOS_APP.p12",
+          "storePassword": "00000018F97698924E1BC46035FCC9903601B27E0CB273053E321890F9C76A67E629129055E9CCC9",
+          "keyAlias": "ha_app_cert",
+          "keyPassword": "00000018FAFD5EA591F516C14B47DDC0A60203A2AEC80D4C5E3D25EF97E91B44F2218CAB94AEA159",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "/Users/xuyaguang/.ohos/config/default_WeiZhuanH_OBZQTbLM3Qy8ffr6Z1YGE8UBqt0QecHAnXh4nycZ_Yk=.p12",
-          "storePassword": "0000001B7ED03FD8E6E2F3B28ED65741240233AA4C58BEF41CCACE420EDE9FE8363D50020FFE9941BD9014"
+          "profile": "/Users/xuyaguang/Desktop/Huawei/awesomehub_development_profileDebug.p7b",
+          "certpath": "/Users/xuyaguang/Desktop/Huawei/app_development.cer"
         }
       }
     ],
@@ -32,10 +32,62 @@
     ],
     "buildModeSet": [
       {
-        "name": "debug",
+        "name": "debug"
       },
       {
         "name": "release"
+      }
+    ],
+    "capabilities": [
+      {
+        "bundleName": "com.weizhuan365.app",
+        "config": [
+          {
+            "capability": "intentsKit",
+            "name": "Intents Kit"
+          },
+          {
+            "capability": "webAccessServiceForAIQA",
+            "name": "webAccessServiceForAIQA"
+          },
+          {
+            "capability": "com.huawei.service.push.base_service",
+            "name": "Push Kit"
+          },
+          {
+            "capability": "com.huawei.service.device_security.device_verify",
+            "name": "Device status detection"
+          },
+          {
+            "capability": "com.huawei.service.mapkit",
+            "name": "Map Kit"
+          },
+          {
+            "capability": "com.huawei.service.device_security.safety_detect",
+            "name": "Safety Detect"
+          }
+        ]
+      },
+      {
+        "bundleName": "com.awesome.hub",
+        "config": [
+          {
+            "name": "Push Kit",
+            "capability": "com.huawei.service.push.base_service"
+          },
+          {
+            "name": "Device status detection",
+            "capability": "com.huawei.service.device_security.device_verify"
+          },
+          {
+            "name": "Map Kit",
+            "capability": "com.huawei.service.mapkit"
+          },
+          {
+            "name": "Safety Detect",
+            "capability": "com.huawei.service.device_security.safety_detect"
+          }
+        ]
       }
     ]
   },

@@ -7,7 +7,6 @@
  * @Description : 描述
  */
 import { ComponentContent, LengthMetrics, LevelMode, UIContext } from "@kit.ArkUI"
-import { WindowUtil } from "../window/WindowUtil"
 
 export class ToastOptions {
   icon?: Resource
