@@ -268,7 +268,7 @@ export class ToastUtil {
           },
           showInSubWindow: options.showInSubWindow,
           levelMode: LevelMode.EMBEDDED,
-          levelUniqueId: options.nodeId ? uiContext.getFrameNodeById(options.nodeId)?.getUniqueId() : null,
+          levelUniqueId: options.nodeId ? uiContext.getFrameNodeById(options.nodeId)?.getUniqueId() : undefined,
           keyboardAvoidMode: KeyboardAvoidMode.DEFAULT,
 
           onWillDismiss: (reason) => {
@@ -293,15 +293,12 @@ export class ToastUtil {
    */
   private static async close(): Promise<void> {
     try {
-      const uiContext = ToastUtil.uiContext
-      if (!uiContext) {
-        console.error('清先初始化uiContext')
-        return
+      if (ToastUtil.uiContext && ToastUtil.contentNode) {
+        const ptAction = ToastUtil.uiContext.getPromptAction()
+        await ptAction.closeCustomDialog(ToastUtil.contentNode)
+        ToastUtil.contentNode?.dispose()
+        ToastUtil.contentNode = undefined
       }
-      const ptAction = uiContext.getPromptAction()
-      await ptAction.closeCustomDialog(ToastUtil.contentNode)
-      ToastUtil.contentNode?.dispose()
-      ToastUtil.contentNode = undefined
       if (ToastUtil.options?.onClose) {
         ToastUtil.options.onClose()
       }

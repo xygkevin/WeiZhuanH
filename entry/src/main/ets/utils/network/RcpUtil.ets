@@ -287,7 +287,7 @@ class RcpLogInterceptor implements rcp.Interceptor {
     const body = request.content;
 
     console.info(`[请求] ${method} ${url}`);
-    console.info(`[请求头] ${JSON.stringify(headers, null, 2)}`);
+    console.info(`[请求头] ${JSON.stringify(headers??'', null, 2)}`);
 
     if (body instanceof rcp.Form) {
       console.info(`[请求体] ${JSON.stringify(body, null, 2)}`);
@@ -314,7 +314,7 @@ class RcpLogInterceptor implements rcp.Interceptor {
         const decoder = new util.TextDecoder();
         const bodyString = decoder.decodeToString(uint8Array);
         // 尝试解析为 JSON
-        console.log(`[响应头] ${JSON.stringify(JSON.parse(bodyString), null, 2)}`)
+        console.log(`[响应头] ${JSON.stringify(JSON.parse(bodyString)??'', null, 2)}`)
 
       } catch (error) {
         console.log(`[响应体] ${body}`);

@@ -50,7 +50,7 @@ export class AlertUtil {
       AlertUtil.uiContext = uiContext
       AlertUtil.contentNode = new ComponentContent<AlertParam>(uiContext, wrapBuilder(buildAlert), param)
       const frameNode: FrameNode | null = param.nodeId ? uiContext.getFrameNodeById(param.nodeId) : null
-      const uniqueId: number | null = frameNode ? frameNode.getUniqueId() : null
+      const uniqueId: number | undefined = frameNode ? frameNode.getUniqueId() : undefined
       const levelMode: LevelMode = uniqueId ? LevelMode.EMBEDDED : LevelMode.OVERLAY
       await uiContext.getPromptAction().openCustomDialog(AlertUtil.contentNode, {
         autoCancel: param.autoCancel,
@@ -61,7 +61,7 @@ export class AlertUtil {
         levelUniqueId: uniqueId,
         alignment: DialogAlignment.Center,
         keyboardAvoidMode: KeyboardAvoidMode.DEFAULT,
-        keyboardAvoidDistance: LengthMetrics.vp(param.keyboardAvoidDistance),
+        keyboardAvoidDistance: LengthMetrics.vp(param.keyboardAvoidDistance ?? 0),
         transition: param.transition,
         dialogTransition: param.dialogTransition,
         maskTransition: param.maskTransition,
@@ -83,9 +83,12 @@ export class AlertUtil {
 
   static async close(): Promise<void> {
     try {
-      await AlertUtil.uiContext?.getPromptAction().closeCustomDialog(AlertUtil.contentNode)
-      AlertUtil.contentNode?.dispose()
+      if (AlertUtil.uiContext && AlertUtil.contentNode) {
+        await AlertUtil.uiContext.getPromptAction().closeCustomDialog(AlertUtil.contentNode)
+        AlertUtil.contentNode.dispose()
+      }
       AlertUtil.contentNode = undefined
+      AlertUtil.uiContext = undefined
     } catch (err) {
       throw new Error((err as BusinessError).message)
     }

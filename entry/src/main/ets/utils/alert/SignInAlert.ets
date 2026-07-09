@@ -7,9 +7,6 @@
  * @Description : 描述
  */
 import {
-  AnimatedDrawableDescriptor,
-  AnimationOptions,
-  AnimationStopMode,
   ComponentContent,
   curves,
   LengthMetrics,
@@ -17,7 +14,7 @@ import {
 } from "@kit.ArkUI"
 import { PixelUtil } from "../pixel/PixelUtil"
 import { HomeCheckInItem, HomeCheckInModel, HomeCheckInTalkTask, HomeCheckInTask } from "./HomeCheckInModel"
-import { image } from "@kit.ImageKit"
+
 
 
 /**
@@ -70,7 +67,7 @@ export class SignInAlert {
       SignInAlert.uiContext = uiContext
       SignInAlert.contentNode = new ComponentContent<SignInAlertParam>(uiContext, wrapBuilder(buildSignInAlert), param)
       const frameNode: FrameNode | null = param.nodeId ? uiContext.getFrameNodeById(param.nodeId) : null
-      const uniqueId: number | null = frameNode ? frameNode.getUniqueId() : null
+      const uniqueId: number | undefined = frameNode ? frameNode.getUniqueId() : undefined
       const levelMode: LevelMode = uniqueId ? LevelMode.EMBEDDED : LevelMode.OVERLAY
       await uiContext.getPromptAction().openCustomDialog(SignInAlert.contentNode, {
         autoCancel: false,
@@ -85,7 +82,7 @@ export class SignInAlert {
           .combine(TransitionEffect.opacity(0))
           .combine(TransitionEffect.scale({ x: 1, y: 1 }))
           .animation({ duration: 500, delay: 0, curve: curves.springCurve(0, 1, 300, 28) }),
-        onWillDismiss: (action: DismissDialogAction) => {
+        onWillDismiss: () => {
           return true
         }
       })
@@ -96,9 +93,12 @@ export class SignInAlert {
 
   static async close(): Promise<void> {
     try {
-      await SignInAlert.uiContext?.getPromptAction().closeCustomDialog(SignInAlert.contentNode)
-      SignInAlert.contentNode?.dispose()
+      if (SignInAlert.uiContext && SignInAlert.contentNode) {
+        await SignInAlert.uiContext?.getPromptAction().closeCustomDialog(SignInAlert.contentNode!)
+        SignInAlert.contentNode?.dispose()
+      }
       SignInAlert.contentNode = undefined
+      SignInAlert.uiContext = undefined
     } catch (err) {
       throw new Error((err as BusinessError).message)
     }
@@ -329,7 +329,7 @@ export struct SignInComponent {
               cross: LengthMetrics.vp(8)
             }
           }) {
-            ForEach(this.data.model.checkinPointList, (item: HomeCheckInItem, index: number) => {
+            ForEach(this.data.model.checkinPointList, (item: HomeCheckInItem) => {
               SignInCard({
                 data: item,
                 isNewUser: this.data.model.isNew,

@@ -158,10 +158,10 @@ export class RouterUtil {
         return
       }
       if (options.onPop) {
-        await RouterUtil.navPathStack.pushDestinationByName(options.name, options.param, options.onPop,
+        await RouterUtil.navPathStack.pushDestinationByName(options.name, options.param ?? '', options.onPop,
           options.animated ?? true)
       } else {
-        await RouterUtil.navPathStack.pushDestinationByName(options.name, options.param, options.animated ?? true)
+        await RouterUtil.navPathStack.pushDestinationByName(options.name, options.param ?? '', options.animated ?? true)
       }
       console.log(`路由 跳转 ${options.name} 成功`)
     } catch (err) {
@@ -177,7 +177,7 @@ export class RouterUtil {
       if (!(await RouterUtil.pushCheck(options))) {
         return
       }
-      RouterUtil.navPathStack.replacePathByName(options.name, options.param, options.animated ?? true)
+      RouterUtil.navPathStack.replacePathByName(options.name, options.param ?? '', options.animated ?? true)
       console.log(`路由 替换 ${options.name} 成功`)
     } catch (err) {
       console.error(`路由 替换 ${options.name} 失败: ${JSON.stringify(err)}`)

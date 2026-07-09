@@ -8,7 +8,6 @@
  */
 import cryptoFramework from "@ohos.security.cryptoFramework"
 import util from "@ohos.util"
-import { buffer } from "@kit.ArkTS";
 
 /**
  * 加密工具
@@ -152,7 +151,7 @@ export class EncryptUtil {
   public static async rsaDecrypt(ciphertext: string, privateKey: string): Promise<string> {
     try {
       let base64 = new util.Base64Helper();
-      let decoded = base64.decodeSync(ciphertext, null);
+      let decoded = base64.decodeSync(ciphertext, undefined);
 
       // 1.分段解密（分段长度=密钥长度/8，密文分段）
       let keySize = 1024

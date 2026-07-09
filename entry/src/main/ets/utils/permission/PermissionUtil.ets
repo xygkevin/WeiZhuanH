@@ -6,8 +6,7 @@
  * @Time : 2026/5/29 18:51
  * @Description : 描述
  */
-import { abilityAccessCtrl, bundleManager, PermissionRequestResult, Permissions } from "@kit.AbilityKit"
-import { ContextUtil } from "../context/ContextUtil"
+import { abilityAccessCtrl, bundleManager, Permissions } from "@kit.AbilityKit"
 
 export class PermissionUtil {
   private static atManager = abilityAccessCtrl.createAtManager()
@@ -30,9 +29,9 @@ export class PermissionUtil {
   /**
    * 向用户申请授权
    */
-  static async requestPermissionsFromUser(permissions: Array<Permissions>): Promise<boolean> {
+  static async requestPermissionsFromUser(context: Context, permissions: Array<Permissions>): Promise<boolean> {
     try {
-      let result = await PermissionUtil.atManager.requestPermissionsFromUser(ContextUtil.abilityContext(), permissions)
+      let result = await PermissionUtil.atManager.requestPermissionsFromUser(context, permissions)
       let grantStatus: Array<number> = result.authResults
       let tempPermissionList: Permissions[] = []
       for (let i = 0; i < grantStatus.length; i++) {
@@ -53,9 +52,9 @@ export class PermissionUtil {
   /**
    * 二次授权申请
    */
-  static async requestPermissionOnSetting(permissions: Array<Permissions>): Promise<boolean> {
+  static async requestPermissionOnSetting(context: Context, permissions: Array<Permissions>): Promise<boolean> {
     try {
-      let status = await PermissionUtil.atManager.requestPermissionOnSetting(ContextUtil.abilityContext(), permissions)
+      let status = await PermissionUtil.atManager.requestPermissionOnSetting(context, permissions)
       let isSuccess = true
       status.forEach((state) => {
         if (state === abilityAccessCtrl.GrantStatus.PERMISSION_DENIED) {

@@ -27,7 +27,7 @@ export class SheetUtil {
       SheetUtil.uiContext = uiContext
       SheetUtil.contentNode = new ComponentContent<SheetParam>(uiContext, wrapBuilder(buildSheet), param)
       const frameNode: FrameNode | null = param.nodeId ? uiContext.getFrameNodeById(param.nodeId) : null
-      const uniqueId: number | null = frameNode ? frameNode.getUniqueId() : null
+      const uniqueId: number | undefined = frameNode ? frameNode.getUniqueId() : undefined
       const levelMode: LevelMode = uniqueId ? LevelMode.EMBEDDED : LevelMode.OVERLAY
       await uiContext.getPromptAction().openCustomDialog(SheetUtil.contentNode, {
         autoCancel: param.autoCancel === undefined ? false : param.autoCancel,
@@ -60,7 +60,7 @@ export class SheetUtil {
 
   static async close(): Promise<void> {
     try {
-      await SheetUtil.uiContext?.getPromptAction().closeCustomDialog(SheetUtil.contentNode)
+      await SheetUtil.uiContext?.getPromptAction().closeCustomDialog(SheetUtil.contentNode!)
       SheetUtil.contentNode?.dispose()
       SheetUtil.contentNode = undefined
     } catch (err) {

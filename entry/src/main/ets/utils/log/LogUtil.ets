@@ -103,7 +103,7 @@ export class LogUtil {
 
       const logContent: string =
         `[请求] ${method} ${url}\n` +
-          `[请求头]\n${JSON.stringify(headers, null, 2)}\n` +
+          `[请求头]\n${JSON.stringify(headers ??'', null, 2)}\n` +
           `[请求体]\n${bodyText}`
 
       LogUtil.info('RCP_REQUEST', logContent)
